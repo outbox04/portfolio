@@ -7,10 +7,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(compression());
-app.use(helmet({ contentSecurityPolicy: false }));
+
+// Bỏ qua helmet cho Facebook crawler
+app.use((req, res, next) => {
+  const ua = req.headers['user-agent'] || '';
+  if (ua.includes('facebookexternalhit') || ua.includes('Twitterbot') || ua.includes('LinkedInBot')) {
+    return next();
+  }
+  helmet({ contentSecurityPolicy: false })(req, res, next);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Cho phép Facebook crawler qua robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *\nAllow: /\n\nUser-agent: facebookexternalhit\nAllow: /`);
+});
 
 app.get('/', (req, res) => {
   const protocol = req.headers['x-forwarded-proto'] || req.protocol;
