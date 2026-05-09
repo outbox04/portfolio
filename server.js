@@ -13,7 +13,10 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.get('/', (req, res) => {
-  res.render('index');
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  const siteUrl = `${protocol}://${host}`;
+  res.render('index', { siteUrl });
 });
 
 app.get('/download-cv', (req, res) => {
@@ -23,11 +26,4 @@ app.get('/download-cv', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-});
-
-app.get('/', (req, res) => {
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-  const host = req.headers['x-forwarded-host'] || req.get('host');
-  const siteUrl = `${protocol}://${host}`;
-  res.render('index', { siteUrl });
 });
